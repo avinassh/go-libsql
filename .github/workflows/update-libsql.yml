@@ -249,6 +249,6 @@ jobs:
             - `linux_arm64/libsql_experimental.a`
             - `darwin_arm64/libsql_experimental.a`
             
-            This update was generated automatically by the build-libsql workflow.
+            This update was generated automatically by the [update-libsql workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
           branch: update-${{ env.LIBSQL_TAG }}
           delete-branch: true
