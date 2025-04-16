@@ -113,8 +113,103 @@ jobs:
           name: libsql-darwin_arm64
           path: go-libsql/lib/darwin_arm64
 
+  verify-linux-amd64:
+    needs: [build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout go-libsql
+        uses: actions/checkout@v4
+
+      - name: Download Linux AMD64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: libsql-linux_amd64
+          path: lib/linux_amd64
+
+      - name: Check binary details
+        run: |
+          echo "Linux AMD64 library size:"
+          ls -la lib/linux_amd64/libsql_experimental.a
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Verify Linux AMD64 build
+        run: |
+          echo "Building example/local/main.go for Linux AMD64..."
+          cd example/local
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -v
+          echo "Linux AMD64 build successful!"
+
+  verify-linux-arm64:
+    needs: [build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout go-libsql
+        uses: actions/checkout@v4
+
+      - name: Download Linux ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: libsql-linux_arm64
+          path: lib/linux_arm64
+
+      - name: Check binary details
+        run: |
+          echo "Linux ARM64 library size:"
+          ls -la lib/linux_arm64/libsql_experimental.a
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Install cross-compiler for ARM64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Verify Linux ARM64 build
+        run: |
+          echo "Building example/local/main.go for Linux ARM64..."
+          cd example/local
+          CC=aarch64-linux-gnu-gcc GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -v
+          echo "Linux ARM64 build successful!"
+
+  verify-darwin-arm64:
+    needs: [build-macos]
+    runs-on: macos-latest
+    steps:
+      - name: Checkout go-libsql
+        uses: actions/checkout@v4
+
+      - name: Download Darwin ARM64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: libsql-darwin_arm64
+          path: lib/darwin_arm64
+
+      - name: Check binary details
+        run: |
+          echo "Darwin ARM64 library size:"
+          ls -la lib/darwin_arm64/libsql_experimental.a
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Verify Darwin ARM64 build
+        run: |
+          echo "Building example/local/main.go for Darwin ARM64..."
+          cd example/local
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -v
+          echo "Darwin ARM64 build successful!"
+
   update-repository:
-    needs: [build-linux, build-macos]
+    needs: [verify-linux-amd64, verify-linux-arm64, verify-darwin-arm64]
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
@@ -134,38 +229,6 @@ jobs:
           cp -r artifacts/libsql-darwin_arm64/* lib/darwin_arm64/
           # Clean up artifacts directory to prevent it from being included in the PR
           rm -rf artifacts
-
-      - name: Check binary details
-        run: |
-          echo "Library sizes:"
-          ls -la lib/linux_amd64/libsql_experimental.a
-          ls -la lib/linux_arm64/libsql_experimental.a
-          ls -la lib/darwin_arm64/libsql_experimental.a
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
-
-      - name: Verify build for all platforms
-        run: |
-          echo "Building example/local/main.go for all platforms..."
-          cd example/local
-          
-          echo "Testing Linux AMD64 build..."
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -v
-          
-          echo "Testing Linux ARM64 build..."
-          # We can't directly build for arm64 on x86_64 with CGO enabled,
-          # so we'll check if the build would succeed by running 'go list' 
-          # which will verify package dependencies are correct
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go list ./...
-          
-          echo "Testing Darwin ARM64 build..."
-          # Similarly for darwin, we verify package structure
-          GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go list ./...
-          
-          echo "All platform builds verified!"
 
       - name: Set libsql tag
         id: set-tag
