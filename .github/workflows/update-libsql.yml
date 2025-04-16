@@ -21,7 +21,7 @@ jobs:
             output_dir: linux_arm64
     steps:
       - name: Checkout go-libsql
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: go-libsql
 
@@ -33,23 +33,20 @@ jobs:
           echo "LIBSQL_TAG=$TAG" >> $GITHUB_ENV
 
       - name: Checkout libsql at tag
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: tursodatabase/libsql
           ref: ${{ env.LIBSQL_TAG }}
           path: libsql
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           override: true
 
       - name: Install cross
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cross
+        run: cargo install cross
 
       - name: Build libsql for ${{ matrix.target }}
         working-directory: libsql/bindings/c
@@ -65,7 +62,7 @@ jobs:
           cp libsql/target/${{ matrix.target }}/release/libsql_experimental.a go-libsql/lib/${{ matrix.output_dir }}/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libsql-${{ matrix.output_dir }}
           path: go-libsql/lib/${{ matrix.output_dir }}
@@ -74,7 +71,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout go-libsql
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: go-libsql
 
@@ -86,18 +83,16 @@ jobs:
           echo "LIBSQL_TAG=$TAG" >> $GITHUB_ENV
 
       - name: Checkout libsql at tag
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: tursodatabase/libsql
           ref: ${{ env.LIBSQL_TAG }}
           path: libsql
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          target: aarch64-apple-darwin
-          override: true
+          targets: aarch64-apple-darwin
 
       - name: Build libsql for macOS
         working-directory: libsql/bindings/c
@@ -113,7 +108,7 @@ jobs:
           cp libsql/target/release/libsql_experimental.a go-libsql/lib/darwin_arm64/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: libsql-darwin_arm64
           path: go-libsql/lib/darwin_arm64
@@ -124,10 +119,10 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout go-libsql
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
