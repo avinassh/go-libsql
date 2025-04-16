@@ -135,6 +135,26 @@ jobs:
           # Clean up artifacts directory to prevent it from being included in the PR
           rm -rf artifacts
 
+      - name: Check binary details
+        run: |
+          echo "Library sizes:"
+          ls -la lib/linux_amd64/libsql_experimental.a
+          ls -la lib/linux_arm64/libsql_experimental.a
+          ls -la lib/darwin_arm64/libsql_experimental.a
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Verify build with examples
+        run: |
+          echo "Building example/local/main.go..."
+          cd example/local
+          go build -v
+          echo "Example built successfully!"
+          rm local
+
       - name: Set libsql tag
         id: set-tag
         run: |
@@ -144,16 +164,16 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          commit-message: "Update libsql libraries to ${{ env.LIBSQL_TAG }}"
-          title: "Update libsql libraries to ${{ env.LIBSQL_TAG }}"
+          commit-message: "Update libsql libraries to `${{ env.LIBSQL_TAG }}`"
+          title: "Update libsql libraries to `${{ env.LIBSQL_TAG }}`"
           body: |
-            This PR updates the libsql static libraries to version ${{ env.LIBSQL_TAG }}.
+            This PR updates the libsql static libraries to version `${{ env.LIBSQL_TAG }}`.
             
             Libraries updated:
-            - linux_amd64/libsql_experimental.a
-            - linux_arm64/libsql_experimental.a
-            - darwin_arm64/libsql_experimental.a
+            - `linux_amd64/libsql_experimental.a`
+            - `linux_arm64/libsql_experimental.a`
+            - `darwin_arm64/libsql_experimental.a`
             
             This update was generated automatically by the build-libsql workflow.
-          branch: update-libsql-${{ env.LIBSQL_TAG }}
+          branch: update-${{ env.LIBSQL_TAG }}
           delete-branch: true
