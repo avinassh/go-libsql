@@ -132,6 +132,8 @@ jobs:
           cp -r artifacts/libsql-linux_amd64/* lib/linux_amd64/
           cp -r artifacts/libsql-linux_arm64/* lib/linux_arm64/
           cp -r artifacts/libsql-darwin_arm64/* lib/darwin_arm64/
+          # Clean up artifacts directory to prevent it from being included in the PR
+          rm -rf artifacts
 
       - name: Set libsql tag
         id: set-tag
