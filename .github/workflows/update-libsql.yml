@@ -106,12 +106,15 @@ jobs:
       - name: Copy library files
         run: |
           cp libsql/target/release/libsql_experimental.a go-libsql/lib/darwin_arm64/
+          cp libsql/bindings/c/include/libsql.h go-libsql/lib/include/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: libsql-darwin_arm64
-          path: go-libsql/lib/darwin_arm64
+          path: |
+            go-libsql/lib/darwin_arm64
+            go-libsql/include
 
   verify-linux-amd64:
     needs: [build-linux]
@@ -223,10 +226,11 @@ jobs:
 
       - name: Copy artifacts to repository
         run: |
-          mkdir -p lib/linux_amd64 lib/linux_arm64 lib/darwin_arm64
+          mkdir -p lib/linux_amd64 lib/linux_arm64 lib/darwin_arm64 lib/include
           cp -r artifacts/libsql-linux_amd64/* lib/linux_amd64/
           cp -r artifacts/libsql-linux_arm64/* lib/linux_arm64/
           cp -r artifacts/libsql-darwin_arm64/* lib/darwin_arm64/
+          cp -r artifacts/include/* lib/include/
           # Clean up artifacts directory to prevent it from being included in the PR
           rm -rf artifacts
 
